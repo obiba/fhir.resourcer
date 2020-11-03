@@ -63,7 +63,7 @@ var fhir_resourcer = {
         return {
             name: name,
             url: "fhir+" + params.url,
-            format: params.path,
+            format: params.path ? params.path : "//Patient",
             identity: credentials.username,
             secret: credentials.password
         };
