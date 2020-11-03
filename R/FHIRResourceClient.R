@@ -7,7 +7,7 @@
 #' @format A R6 object of class FHIRResourceClient
 #' @import resourcer R6 fhircrackr
 #' @export
-FHIReResourceClient <- R6::R6Class(
+FHIRResourceClient <- R6::R6Class(
   "FHIRResourceClient",
   inherit = ResourceClient,
   public = list(
@@ -35,7 +35,7 @@ FHIReResourceClient <- R6::R6Class(
         if (is.null(format)) {
           format <- "//Patient"
         }
-        url <- resource$url
+        url <- substring(resource$url, 6) # remove leading 'fhir+'
         bundles <- fhir_search(url)
         design <- list(
           entities = list(
