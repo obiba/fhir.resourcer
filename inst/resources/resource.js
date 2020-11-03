@@ -1,4 +1,4 @@
-var s3_resourcer = {
+var fhir_resourcer = {
   settings: {
     "title": "FHIR Resources",
     "description": "Resources that can be retrieved from HL7 FHIR server.",
