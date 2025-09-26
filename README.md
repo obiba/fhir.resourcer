@@ -1,7 +1,7 @@
 # FHIR Resource R
 
-[![Build Status](https://travis-ci.com/obiba/fhir.resourcer.svg?branch=master)](https://travis-ci.com/obiba/fhir.resourcer)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fhir.resourcer)](https://cran.r-project.org/package=fhir.resourcer)
+[![R-CMD-check](https://github.com/obiba/fhir.resourcer/actions/workflows/ci.yml/badge.svg)](https://github.com/obiba/fhir.resourcer/actions/workflows/ci.yml)
 
 The `fhir.resourcer` package is for accessing the patients' data from a [HL7 FHIR](http://hl7.org/fhir/) server. It makes use of the [fhircrackr](https://github.com/POLAR-fhiR/fhircrackr) R package.
 
