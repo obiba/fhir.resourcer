@@ -36,3 +36,22 @@ client$joinTables("Observation", "Patient")  # observations with Patient.* colum
 ```
 
 No other query is issued: the resource URL defines the scope of the accessible data. Tables with a `subject` (or `patient`) reference get a `subject.id` (or `patient.id`) column, to be matched with the `id` of the referenced resource.
+
+## Repeated elements
+
+Repeated elements (several codings, components...) are pasted in a single cell, separated by `:::`. They can be expanded into rows, one per repetition, the other columns being repeated:
+
+```
+res <- resourcer::newResource(url="fhir+https://hapi.fhir.org/baseR4/Observation?code=http://loinc.org|85354-9", format="Observation|component")
+client <- resourcer::newResourceClient(res)
+client$asDataFrame()                                  # one row per blood pressure component
+client$getTable("Observation", melt = "code.coding")  # one row per coding
+```
+
+In the Opal resource form, these elements are the "Expanded elements". Melting several elements gives all their combinations.
+
+Alternatively, a single repetition can be selected with an XPath filter in the columns, e.g. the LOINC code:
+
+```
+client$getTable("Observation", cols = c(id = "id", loinc = "code/coding[system/@value='http://loinc.org']/code"))
+```
