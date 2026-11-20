@@ -3,7 +3,13 @@ var fhir_resourcer = {
     "title": "FHIR Resources",
     "description": "Resources that can be retrieved from HL7 FHIR server.",
     "web": "https://github.com/obiba/fhir.resourcer",
-    "categories": [],
+    "categories": [
+      {
+        "name": "database",
+        "title": "Database",
+        "description": "Data are stored in a database."
+      }
+    ],
     "types": [
       {
         "name": "fhir",
