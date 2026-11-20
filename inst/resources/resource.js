@@ -25,6 +25,12 @@ var fhir_resourcer = {
               "type": "string",
               "title": "Resource type",
               "description": "Type of the FHIR resources to be extracted from the search results, e.g. 'Patient' or 'Observation' (see [fhircrackr](https://github.com/POLAR-fhiR/fhircrackr)). Optional, default value is 'Patient'."
+            },
+            {
+              "key": "melt",
+              "type": "string",
+              "title": "Expanded elements",
+              "description": "Repeated elements to expand into rows, separated by commas, e.g. 'component' or 'code.coding'. Optional, by default repetitions are pasted in a single cell, separated by ':::'."
             }
           ],
           "required": [
@@ -66,11 +72,17 @@ var fhir_resourcer = {
     //
     // Resource factory functions to be reused
     //
+    var toFormat = function(params) {
+        var type = params.path ? params.path.replace(/^\/+/, "") : "Patient";
+        var melt = params.melt ? params.melt.split(",").map(function(e) { return e.trim(); }).filter(function(e) { return e.length > 0; }) : [];
+        return [type].concat(melt).join("|");
+    };
+
     var toFHIRResource = function(name, params, credentials) {
         return {
             name: name,
             url: "fhir+" + params.url,
-            format: params.path ? params.path.replace(/^\/+/, "") : "Patient",
+            format: toFormat(params),
             identity: credentials.username,
             secret: credentials.username ? credentials.password : credentials.token
         };

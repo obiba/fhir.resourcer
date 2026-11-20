@@ -16,11 +16,13 @@ test_that("FHIR resource resolver applies to fhir+ URLs only", {
   expect_false(resolver$isFor(resourcer::newResource(url = "https://example.org/fhir/Patient")))
 })
 
-test_that("Resource type accepts plain and legacy XPath forms", {
-  expect_equal(fhir_resource_type(NULL), "Patient")
-  expect_equal(fhir_resource_type(""), "Patient")
-  expect_equal(fhir_resource_type("Observation"), "Observation")
-  expect_equal(fhir_resource_type("//Observation"), "Observation")
+test_that("Format gives the resource type, in plain or legacy XPath form, and the elements to melt", {
+  expect_equal(fhir_parse_format(NULL), list(type = "Patient", melt = NULL))
+  expect_equal(fhir_parse_format(""), list(type = "Patient", melt = NULL))
+  expect_equal(fhir_parse_format("Observation"), list(type = "Observation", melt = NULL))
+  expect_equal(fhir_parse_format("//Observation"), list(type = "Observation", melt = NULL))
+  expect_equal(fhir_parse_format("Observation| component |code.coding|"),
+               list(type = "Observation", melt = c("component", "code.coding")))
 })
 
 test_that("FHIR resource client extracts resources and passes credentials", {
@@ -127,4 +129,77 @@ test_that("Resources repeated across pages appear once", {
   })
   client <- FHIRResourceClient$new(resourcer::newResource(url = "fhir+https://example.org/fhir/Patient"))
   expect_equal(client$getTable("Patient")$id, c("p1", "p2"))
+})
+
+# client on the repeated elements fixture: o1 has 2 codings (LOINC and local), o2 has 2 components
+repeated_client <- function(format = NULL) {
+  local_mocked_bindings(fhir_fetch = function(...) {
+    fhircrackr::fhir_load(test_path("fixtures", "repeated"))
+  }, .env = parent.frame())
+  FHIRResourceClient$new(resourcer::newResource(url = "fhir+https://example.org/fhir/Observation", format = format))
+}
+
+test_that("Repeated elements are pasted in a single cell by default", {
+  df <- repeated_client()$getTable("Observation")
+  expect_equal(df$code.coding.code, c("718-7:::HB", "85354-9"))
+  expect_equal(df$component.valueQuantity.value, c(NA, "120:::80"))
+})
+
+test_that("Repeated elements are melted into rows", {
+  client <- repeated_client()
+  df <- client$getTable("Observation", melt = "component")
+  expect_equal(df$id, c("o1", "o2", "o2"))
+  expect_equal(df$component.code.coding.code, c(NA, "8480-6", "8462-4"))
+  expect_equal(df$component.valueQuantity.value, c(NA, "120", "80"))
+  expect_equal(df$code.coding.code, c("718-7:::HB", "85354-9", "85354-9"))
+  expect_equal(df$subject.id, c("p1", "p1", "p1"))
+  expect_false("resource_identifier" %in% names(df))
+
+  df <- client$getTable("Observation", melt = "code.coding")
+  expect_equal(df$id, c("o1", "o1", "o2"))
+  expect_equal(df$code.coding.system, c("http://loinc.org", "urn:local", "http://loinc.org"))
+
+  df <- client$getTable("Observation", melt = c("component", "code.coding"))
+  expect_equal(df$id, c("o1", "o1", "o2", "o2"))
+  expect_equal(df$code.coding.code, c("718-7", "HB", "85354-9", "85354-9"))
+  expect_equal(df$component.valueQuantity.value, c(NA, NA, "120", "80"))
+
+  expect_equal(nrow(client$getTable("Encounter", melt = "component")), 0)
+})
+
+test_that("Melting does not alter the values", {
+  df <- repeated_client()$getTable("Observation", melt = "component")
+  expect_equal(df$note.text, c("dose [1.5] mg", NA, NA))
+  expect_equal(df$component.code.text, c(NA, "a:::b", NA))
+})
+
+test_that("Unknown elements to melt are reported, XPath style is accepted", {
+  client <- repeated_client()
+  expect_warning(df <- client$getTable("Observation", melt = c("code.coding", "nothing")), "'nothing'")
+  expect_equal(df$id, c("o1", "o1", "o2"))
+  expect_equal(client$getTable("Observation", melt = "code/coding"), df)
+})
+
+test_that("Equivalent melt requests share the cached table", {
+  client <- repeated_client()
+  client$getTable("Observation", melt = c("component", "code.coding"))
+  client$getTable("Observation", melt = c(" code.coding", "component", "component"))
+  expect_length(client$.__enclos_env__$private$.tables, 1)
+})
+
+test_that("Columns are melted at all levels", {
+  df <- repeated_client()$getTable("Observation", cols = c(id = "id", code = "code/coding/code"), melt = "code")
+  expect_equal(df$id, c("o1", "o1", "o2"))
+  expect_equal(df$code, c("718-7", "HB", "85354-9"))
+})
+
+test_that("Format melts repeated elements in asDataFrame", {
+  df <- repeated_client("Observation|component")$asDataFrame()
+  expect_equal(df$component.code.coding.code, c(NA, "8480-6", "8462-4"))
+})
+
+test_that("A single coding is selected with an XPath filter", {
+  df <- repeated_client()$getTable("Observation",
+    cols = c(id = "id", loinc = "code/coding[system/@value='http://loinc.org']/code"))
+  expect_equal(df$loinc, c("718-7", "85354-9"))
 })

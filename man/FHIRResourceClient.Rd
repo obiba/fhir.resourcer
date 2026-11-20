@@ -19,7 +19,12 @@ issued, so the resource URL defines the scope of the accessible data.
 The client can be used in two ways:
 
 * `asDataFrame()` returns the table of the resource type configured by the
-  resource `format` (default `Patient`).
+  resource `format` (default `Patient`). The format can also list repeated
+  elements to expand into rows, separated by `|`, e.g. `Observation|component`.
+
+Repeated elements (several codings, components...) are otherwise pasted in a
+single cell, separated by `:::`. They can be expanded into rows (`melt`), or a
+single repetition can be selected with an XPath filter in the columns (`cols`).
 * `getResourceTypes()`, `getTable()`, `getTables()` and `joinTables()` give
   access to all the resource types present in the bundles, e.g. for
   server-side analysis packages.
@@ -135,7 +140,7 @@ referenced resource, to be matched with its `id` column.
   Extract the table of a resource type from the bundles.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{FHIRResourceClient$getTable(type, cols = NULL)}
+    \preformatted{FHIRResourceClient$getTable(type, cols = NULL, melt = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -143,7 +148,15 @@ referenced resource, to be matched with its `id` column.
     \describe{
       \item{\code{type}}{The resource type, e.g. "Observation".}
       \item{\code{cols}}{Columns to extract, passed to fhircrackr::fhir_table_description().
-Default is all the elements. Tables with default columns are cached.}
+Default is all the elements. XPath filters select a single repetition, e.g.
+`c(loinc = "code/coding[system/@value='http://loinc.org']/code")`.
+Tables with default columns are cached.}
+      \item{\code{melt}}{Repeated elements to expand into rows, e.g. "component" or
+"code.coding" (column name prefixes, "code/coding" is also accepted). The
+other columns are repeated in each row; melting several elements gives all
+their combinations. With `cols`, a melted column is expanded at all its
+levels, e.g. one row per coding for `c(code = "code/coding/code")`. Default
+is none: repetitions are pasted in a single cell, separated by `:::`.}
     }
     \if{html}{\out{</div>}}
   }

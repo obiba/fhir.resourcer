@@ -1,0 +1,14 @@
+<Bundle xmlns="http://hl7.org/fhir"><type value="searchset"/>
+<entry><resource><Observation><id value="o1"/>
+ <category><coding><system value="http://terminology.hl7.org/CodeSystem/observation-category"/><code value="laboratory"/></coding></category>
+ <code><coding><system value="http://loinc.org"/><code value="718-7"/></coding><coding><system value="urn:local"/><code value="HB"/></coding></code>
+ <subject><reference value="Patient/p1"/></subject>
+ <valueQuantity><value value="13.2"/><unit value="g/dL"/></valueQuantity>
+ <note><text value="dose [1.5] mg"/></note></Observation></resource></entry>
+<entry><resource><Observation><id value="o2"/>
+ <code><coding><system value="http://loinc.org"/><code value="85354-9"/></coding></code>
+ <subject><reference value="Patient/p1"/></subject>
+ <component><code><coding><system value="http://loinc.org"/><code value="8480-6"/></coding><text value="a:::b"/></code><valueQuantity><value value="120"/></valueQuantity></component>
+ <component><code><coding><system value="http://loinc.org"/><code value="8462-4"/></coding></code><valueQuantity><value value="80"/></valueQuantity></component>
+</Observation></resource></entry>
+</Bundle>
