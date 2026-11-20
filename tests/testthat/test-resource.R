@@ -108,8 +108,8 @@ test_that("Tables are joined on references", {
   expect_equal(nrow(df), 3)
   expect_equal(df$Patient.id, c("p1", "p2", NA))
   expect_equal(df$Patient.gender, c("female", "male", NA))
-  expect_equal(df$valueQuantity.value, c("13.2", "14.8", "12.1"))
-  expect_equal(client$joinTables("Condition", "Patient")$Patient.birthDate, "1970-01-01")
+  expect_equal(df$valueQuantity.value, c(13.2, 14.8, 12.1))
+  expect_equal(client$joinTables("Condition", "Patient")$Patient.birthDate, as.Date("1970-01-01"))
   expect_equal(client$joinTables("Observation", "Encounter"), client$getTable("Observation"))
   expect_error(client$joinTables("Patient", "Observation"), "No 'subject' reference")
 })
@@ -150,7 +150,7 @@ test_that("Repeated elements are melted into rows", {
   df <- client$getTable("Observation", melt = "component")
   expect_equal(df$id, c("o1", "o2", "o2"))
   expect_equal(df$component.code.coding.code, c(NA, "8480-6", "8462-4"))
-  expect_equal(df$component.valueQuantity.value, c(NA, "120", "80"))
+  expect_equal(df$component.valueQuantity.value, c(NA, 120, 80))
   expect_equal(df$code.coding.code, c("718-7:::HB", "85354-9", "85354-9"))
   expect_equal(df$subject.id, c("p1", "p1", "p1"))
   expect_false("resource_identifier" %in% names(df))
@@ -162,7 +162,7 @@ test_that("Repeated elements are melted into rows", {
   df <- client$getTable("Observation", melt = c("component", "code.coding"))
   expect_equal(df$id, c("o1", "o1", "o2", "o2"))
   expect_equal(df$code.coding.code, c("718-7", "HB", "85354-9", "85354-9"))
-  expect_equal(df$component.valueQuantity.value, c(NA, NA, "120", "80"))
+  expect_equal(df$component.valueQuantity.value, c(NA, NA, 120, 80))
 
   expect_equal(nrow(client$getTable("Encounter", melt = "component")), 0)
 })
@@ -202,4 +202,19 @@ test_that("A single coding is selected with an XPath filter", {
   df <- repeated_client()$getTable("Observation",
     cols = c(id = "id", loinc = "code/coding[system/@value='http://loinc.org']/code"))
   expect_equal(df$loinc, c("718-7", "85354-9"))
+})
+
+test_that("Columns are converted to their FHIR type when all the values have its form", {
+  expect_equal(fhir_column_type("meta.lastUpdated"), "instant")
+  expect_equal(fhir_column_type("component.valueQuantity.value"), "decimal")
+  expect_equal(fhir_column_type("identifier.value"), "")
+  expect_equal(fhir_convert(c("true", NA, "false"), "boolean"), c(TRUE, NA, FALSE))
+  expect_equal(fhir_convert(c("1.5", "-2e3"), "decimal"), c(1.5, -2000))
+  expect_equal(fhir_convert("1970-01-01", "date"), as.Date("1970-01-01"))
+  expect_equal(fhir_convert(c("2020-05-01T10:00:00.5+02:00", "2020-05-01T08:00:00Z"), "instant"),
+               as.POSIXct(c("2020-05-01 08:00:00.5", "2020-05-01 08:00:00"), tz = "UTC"))
+  # partial date, multiple values, overflow: left as text
+  expect_equal(fhir_convert(c("1970-01-01", "1970"), "date"), c("1970-01-01", "1970"))
+  expect_equal(fhir_convert("120:::80", "decimal"), "120:::80")
+  expect_equal(fhir_convert("99999999999", "integer"), "99999999999")
 })
