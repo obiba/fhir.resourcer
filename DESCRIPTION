@@ -1,7 +1,7 @@
 Package: fhir.resourcer
 Type: Package
 Title: FHIR Resource Resolver
-Version: 0.9.0
+Version: 0.10.0
 Authors@R:
     c(person(given = "Yannick",
              family = "Marcon",
@@ -18,11 +18,14 @@ Depends:
     R6,
     resourcer,
     fhircrackr (>= 1.0.0)
+Imports:
+    stats,
+    xml2
 Suggests:
     testthat,
     knitr
 BugReports: https://github.com/obiba/fhir.resourcer
-RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Encoding: UTF-8
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.0

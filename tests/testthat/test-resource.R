@@ -54,3 +54,60 @@ test_that("Credentials map to basic authentication or bearer token", {
   fhir_fetch("u", NULL, "tok")
   expect_equal(args, list("u", token = "tok", verbose = 0))
 })
+
+# client on the fixture bundle: 2 Patients, 3 Observations, 1 Condition
+fixture_client <- function(format = NULL) {
+  local_mocked_bindings(fhir_fetch = function(...) {
+    fhircrackr::fhir_load(test_path("fixtures", "include"))
+  }, .env = parent.frame())
+  FHIRResourceClient$new(resourcer::newResource(url = "fhir+https://example.org/fhir/Patient", format = format))
+}
+
+test_that("References are normalised to Type/id", {
+  expect_equal(fhir_reference_key(c("Patient/p1", "https://example.org/fhir/Patient/p2/_history/3",
+                                    "https://example.org/fhir/Patient/p3", NA)),
+               c("Patient/p1", "Patient/p2", "Patient/p3", NA))
+})
+
+test_that("Bundles are fetched once and all resource types are listed", {
+  n <- 0
+  local_mocked_bindings(fhir_fetch = function(...) {
+    n <<- n + 1
+    fhircrackr::fhir_load(test_path("fixtures", "include"))
+  })
+  client <- FHIRResourceClient$new(resourcer::newResource(url = "fhir+https://example.org/fhir/Patient"))
+  expect_setequal(client$getResourceTypes(), c("Patient", "Observation", "Condition"))
+  client$asDataFrame()
+  client$getTable("Observation")
+  expect_equal(n, 1)
+})
+
+test_that("asDataFrame returns the table of the configured type, with subject ids", {
+  df <- fixture_client()$asDataFrame()
+  expect_equal(df$id, c("p1", "p2"))
+  obs <- fixture_client("Observation")$asDataFrame()
+  expect_equal(obs$id, c("o1", "o2", "o3"))
+  expect_equal(obs$subject.id, c("p1", "p2", "unknown"))
+})
+
+test_that("Tables can be extracted by type, with a column selection", {
+  client <- fixture_client()
+  tables <- client$getTables()
+  expect_setequal(names(tables), c("Patient", "Observation", "Condition"))
+  expect_equal(nrow(tables$Condition), 1)
+  obs <- client$getTable("Observation", cols = c(id = "id", value = "valueQuantity/value"))
+  expect_equal(names(obs), c("id", "value"))
+  expect_equal(nrow(client$getTable("Encounter")), 0)
+})
+
+test_that("Tables are joined on references", {
+  client <- fixture_client()
+  df <- client$joinTables("Observation", "Patient")
+  expect_equal(nrow(df), 3)
+  expect_equal(df$Patient.id, c("p1", "p2", NA))
+  expect_equal(df$Patient.gender, c("female", "male", NA))
+  expect_equal(df$valueQuantity.value, c("13.2", "14.8", "12.1"))
+  expect_equal(client$joinTables("Condition", "Patient")$Patient.birthDate, "1970-01-01")
+  expect_equal(client$joinTables("Observation", "Encounter"), client$getTable("Observation"))
+  expect_error(client$joinTables("Patient", "Observation"), "No 'subject' reference")
+})

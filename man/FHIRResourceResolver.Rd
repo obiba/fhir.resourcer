@@ -8,11 +8,6 @@
 A R6 object of class FHIRResourceResolver
 }
 \description{
-FHIR resource resolver
-
-FHIR resource resolver
-}
-\details{
 Build a FHIR resource client from a resource object describing access to a 
 HL7 FHIR server.
 }
@@ -21,68 +16,72 @@ HL7 FHIR server.
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-isFor}{\code{FHIRResourceResolver$isFor()}}
-\item \href{#method-newClient}{\code{FHIRResourceResolver$newClient()}}
-\item \href{#method-clone}{\code{FHIRResourceResolver$clone()}}
+  \itemize{
+    \item \href{#method-FHIRResourceResolver-isFor}{\code{FHIRResourceResolver$isFor()}}
+    \item \href{#method-FHIRResourceResolver-newClient}{\code{FHIRResourceResolver$newClient()}}
+    \item \href{#method-FHIRResourceResolver-clone}{\code{FHIRResourceResolver$clone()}}
+  }
 }
-}
-\if{html}{
-\out{<details open ><summary>Inherited methods</summary>}
-\itemize{
-\item \out{<span class="pkg-link" data-pkg="resourcer" data-topic="ResourceResolver" data-id="initialize">}\href{../../resourcer/html/ResourceResolver.html#method-initialize}{\code{resourcer::ResourceResolver$initialize()}}\out{</span>}
-}
-\out{</details>}
-}
+\if{html}{\out{<details open><summary>Inherited methods</summary>
+<ul>
+  <li><span class="pkg-link" data-pkg="resourcer" data-topic="ResourceResolver" data-id="initialize"><a href='../../resourcer/html/ResourceResolver.html#method-ResourceResolver-initialize'><code>resourcer::ResourceResolver$initialize()</code></a></span></li>
+</ul>
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-isFor"></a>}}
-\if{latex}{\out{\hypertarget{method-isFor}{}}}
-\subsection{Method \code{isFor()}}{
-Check if resource applies to this resolver.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FHIRResourceResolver$isFor(x)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-FHIRResourceResolver-isFor"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceResolver-isFor}{}}}
+\subsection{\code{FHIRResourceResolver$isFor()}}{
+  Check if resource applies to this resolver.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceResolver$isFor(x)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{A resource object.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{x}}{A resource object.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-newClient"></a>}}
-\if{latex}{\out{\hypertarget{method-newClient}{}}}
-\subsection{Method \code{newClient()}}{
-Create a new instance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FHIRResourceResolver$newClient(x)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-FHIRResourceResolver-newClient"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceResolver-newClient}{}}}
+\subsection{\code{FHIRResourceResolver$newClient()}}{
+  Create a new instance.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceResolver$newClient(x)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{A resource object.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{x}}{A resource object.}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FHIRResourceResolver$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-FHIRResourceResolver-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceResolver-clone}{}}}
+\subsection{\code{FHIRResourceResolver$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceResolver$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
