@@ -217,4 +217,12 @@ test_that("Columns are converted to their FHIR type when all the values have its
   expect_equal(fhir_convert(c("1970-01-01", "1970"), "date"), c("1970-01-01", "1970"))
   expect_equal(fhir_convert("120:::80", "decimal"), "120:::80")
   expect_equal(fhir_convert("99999999999", "integer"), "99999999999")
+  # invalid day (first value), hour 24, overflow: left as text
+  expect_equal(fhir_convert(c("2021-02-29", "2020-01-01"), "date"), c("2021-02-29", "2020-01-01"))
+  expect_equal(fhir_convert("2020-01-01T24:00:00Z", "dateTime"), "2020-01-01T24:00:00Z")
+  expect_equal(fhir_convert("1e400", "decimal"), "1e400")
+  # period bounds only
+  expect_equal(fhir_column_type("effectivePeriod.start"), "dateTime")
+  expect_equal(fhir_column_type("period.end"), "dateTime")
+  expect_equal(fhir_column_type("variant.start"), "")
 })

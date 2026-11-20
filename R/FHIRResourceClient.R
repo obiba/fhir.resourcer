@@ -83,7 +83,12 @@ FHIRResourceClient <- R6::R6Class(
     #'   their combinations. With `cols`, a melted column is expanded at all its
     #'   levels, e.g. one row per coding for `c(code = "code/coding/code")`. Default
     #'   is none: repetitions are pasted in a single cell, separated by `:::`.
-    #' @return A data.frame, empty if the resource type is not present.
+    #' @return A data.frame, empty if the resource type is not present. Common
+    #'   elements are converted from text to their FHIR type (logical, integer,
+    #'   numeric, Date, POSIXct in UTC), only when all the values of the column have
+    #'   the FHIR form: a column with a partial date ("2011") or multiple values
+    #'   (`:::`) stays character, so the class may vary with the data. Decimals lose
+    #'   their trailing zeros ("5.00" gives 5).
     getTable = function(type, cols = NULL, melt = NULL) {
       melt <- sort(unique(chartr("/", ".", trimws(melt))))
       melt <- melt[nchar(melt) > 0]
@@ -204,23 +209,25 @@ FHIR_TYPES <- c(
   lastUpdated = "instant", issued = "instant",
   deceasedDateTime = "dateTime", effectiveDateTime = "dateTime", valueDateTime = "dateTime",
   onsetDateTime = "dateTime", abatementDateTime = "dateTime", recordedDate = "dateTime",
-  authoredOn = "dateTime", start = "dateTime", end = "dateTime"
+  authoredOn = "dateTime"
 )
 
 # Lexical form of the FHIR types, a column is converted only when all its values match
 FHIR_PATTERNS <- c(
   boolean = "^(true|false)$",
   integer = "^[+-]?[0-9]+$",
-  decimal = "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$",
+  decimal = "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]{1,9})?$",
   date = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-  dateTime = "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+  dateTime = "^[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
 )
 
 # FHIR type of a column, "" if unknown.
 fhir_column_type <- function(name) {
   keys <- names(FHIR_TYPES)
   hit <- keys[name == keys | endsWith(name, paste0(".", keys))]
-  if (length(hit) == 0) "" else FHIR_TYPES[[hit[1]]]
+  if (length(hit) > 0) return(FHIR_TYPES[[hit[1]]])
+  # Period bounds, e.g. "period.start", "effectivePeriod.end"
+  if (grepl("(^|\\.)([a-z]+P|p)eriod\\.(start|end)$", name)) "dateTime" else ""
 }
 
 # Convert a character column to its FHIR type: logical, integer, numeric, Date or
@@ -235,7 +242,7 @@ fhir_convert <- function(x, type) {
     boolean = x == "true",
     integer = suppressWarnings(as.integer(x)),
     decimal = as.numeric(x),
-    date = as.Date(x),
+    date = as.Date(x, format = "%Y-%m-%d"),
     dateTime = {
       zone <- sub(".*(Z|[+-][0-9]{2}:[0-9]{2})$", "\\1", x)
       offset <- ifelse(zone == "Z", 0,
@@ -245,7 +252,7 @@ fhir_convert <- function(x, type) {
       local - offset
     }
   )
-  if (any(is.na(y[given]))) x else y
+  if (any(is.na(y[given])) || any(is.infinite(y[given]))) x else y
 }
 
 # Normalise references to "Type/id": relative ("Patient/123") or absolute and
