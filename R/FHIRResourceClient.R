@@ -102,7 +102,11 @@ FHIRResourceClient <- R6::R6Class(
       if (!(refCol %in% names(fromTable))) {
         stop("No '", reference, "' reference in the ", from, " resources", call. = FALSE)
       }
-      idx <- match(fhir_reference_key(fromTable[[refCol]]), paste0(to, "/", toTable$id))
+      refs <- fromTable[[refCol]]
+      if (any(grepl(":::", refs, fixed = TRUE))) {
+        stop("Multi-valued '", reference, "' references in the ", from, " resources cannot be joined", call. = FALSE)
+      }
+      idx <- match(fhir_reference_key(refs), paste0(to, "/", toTable[["id"]]))
       joined <- toTable[idx, , drop = FALSE]
       if (ncol(joined) > 0) names(joined) <- paste0(to, ".", names(joined))
       rownames(joined) <- NULL

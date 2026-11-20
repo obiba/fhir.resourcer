@@ -111,3 +111,20 @@ test_that("Tables are joined on references", {
   expect_equal(client$joinTables("Observation", "Encounter"), client$getTable("Observation"))
   expect_error(client$joinTables("Patient", "Observation"), "No 'subject' reference")
 })
+
+test_that("Multi-valued references are rejected", {
+  client <- fixture_client()
+  obs <- client$getTable("Observation")
+  obs$subject.reference[1] <- "Patient/p1:::Patient/p2"
+  client$.__enclos_env__$private$.tables$Observation <- obs
+  expect_error(client$joinTables("Observation", "Patient"), "Multi-valued 'subject'")
+})
+
+test_that("Resources repeated across pages appear once", {
+  local_mocked_bindings(fhir_fetch = function(...) {
+    page <- function() xml2::read_xml(test_path("fixtures", "include", "1.xml"))
+    fhircrackr::fhir_bundle_list(list(page(), page()))
+  })
+  client <- FHIRResourceClient$new(resourcer::newResource(url = "fhir+https://example.org/fhir/Patient"))
+  expect_equal(client$getTable("Patient")$id, c("p1", "p2"))
+})
