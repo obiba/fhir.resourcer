@@ -13,3 +13,11 @@ res <- resourcer::newResource(url="fhir+https://hapi.fhir.org/baseR4/Patient")
 client <- resourcer::newResourceClient(res)
 client$asDataFrame()
 ```
+
+The resource `format` is the type of the FHIR resources to extract from the search results (default `Patient`), e.g. to get observations:
+
+```
+res <- resourcer::newResource(url="fhir+https://hapi.fhir.org/baseR4/Observation?code=http://loinc.org|736-9", format="Observation")
+```
+
+Authentication: set `identity` and `secret` for a user name and password, or only `secret` for a bearer token.

@@ -31,22 +31,31 @@ FHIRResourceClient <- R6::R6Class(
     getOrRead = function() {
       if (is.null(private$.obj)) {
         resource <- super$getResource()
-        format <- resource$format
-        if (is.null(format)) {
-          format <- "//Patient"
-        }
         url <- substring(resource$url, 6) # remove leading 'fhir+'
-        bundles <- fhir_search(url)
-        design <- list(
-          entities = list(
-            resource = format,
-            cols = "./*"
-          )
-        )
-        dfs <- fhir_crack(bundles = bundles, design = design)
-        private$.obj <- dfs$entities
+        bundles <- fhir_fetch(url, resource$identity, resource$secret)
+        design <- fhir_table_description(resource = fhir_resource_type(resource$format))
+        private$.obj <- fhir_crack(bundles = bundles, design = design, verbose = 0)
       }
       private$.obj
     }
   )
 )
+
+# Resource type from the resource format: "Patient", also accepts the legacy XPath form "//Patient".
+fhir_resource_type <- function(format) {
+  type <- sub("^/+", "", if (is.null(format)) "" else format)
+  if (nchar(type) == 0) "Patient" else type
+}
+
+# Search the FHIR server. A user name with a password is basic authentication,
+# a secret without a user name is a bearer token.
+fhir_fetch <- function(url, identity = NULL, secret = NULL) {
+  has <- function(x) !is.null(x) && nchar(x) > 0
+  if (has(identity)) {
+    fhir_search(url, username = identity, password = secret, verbose = 0)
+  } else if (has(secret)) {
+    fhir_search(url, token = secret, verbose = 0)
+  } else {
+    fhir_search(url, verbose = 0)
+  }
+}
