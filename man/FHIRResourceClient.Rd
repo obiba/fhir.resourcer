@@ -8,92 +8,216 @@
 A R6 object of class FHIRResourceClient
 }
 \description{
-FHIR resource client
-
-FHIR resource client
-}
-\details{
-Build a FHIR handler from a resource object describing access to a 
+Build a FHIR handler from a resource object describing access to a
 HL7 FHIR server.
+
+The FHIR bundles are fetched once, using the resource URL, and cached. All
+the tables are extracted from these bundles: several resource types can be
+obtained in one search with `_include`/`_revinclude`. No other query is
+issued, so the resource URL defines the scope of the accessible data.
+
+The client can be used in two ways:
+
+* `asDataFrame()` returns the table of the resource type configured by the
+  resource `format` (default `Patient`).
+* `getResourceTypes()`, `getTable()`, `getTables()` and `joinTables()` give
+  access to all the resource types present in the bundles, e.g. for
+  server-side analysis packages.
+
+A `subject.id` (resp. `patient.id`) column is added to the tables having a
+`subject` (resp. `patient`) reference: it holds the identifier of the
+referenced resource, to be matched with its `id` column.
 }
 \section{Super class}{
 \code{\link[resourcer:ResourceClient]{resourcer::ResourceClient}} -> \code{FHIRResourceClient}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-new}{\code{FHIRResourceClient$new()}}
-\item \href{#method-asDataFrame}{\code{FHIRResourceClient$asDataFrame()}}
-\item \href{#method-clone}{\code{FHIRResourceClient$clone()}}
+  \itemize{
+    \item \href{#method-FHIRResourceClient-initialize}{\code{FHIRResourceClient$new()}}
+    \item \href{#method-FHIRResourceClient-asDataFrame}{\code{FHIRResourceClient$asDataFrame()}}
+    \item \href{#method-FHIRResourceClient-getBundles}{\code{FHIRResourceClient$getBundles()}}
+    \item \href{#method-FHIRResourceClient-getResourceTypes}{\code{FHIRResourceClient$getResourceTypes()}}
+    \item \href{#method-FHIRResourceClient-getTable}{\code{FHIRResourceClient$getTable()}}
+    \item \href{#method-FHIRResourceClient-getTables}{\code{FHIRResourceClient$getTables()}}
+    \item \href{#method-FHIRResourceClient-joinTables}{\code{FHIRResourceClient$joinTables()}}
+    \item \href{#method-FHIRResourceClient-clone}{\code{FHIRResourceClient$clone()}}
+  }
 }
-}
-\if{html}{
-\out{<details ><summary>Inherited methods</summary>}
-\itemize{
-\item \out{<span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="asTbl">}\href{../../resourcer/html/ResourceClient.html#method-asTbl}{\code{resourcer::ResourceClient$asTbl()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="close">}\href{../../resourcer/html/ResourceClient.html#method-close}{\code{resourcer::ResourceClient$close()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="downloadFile">}\href{../../resourcer/html/ResourceClient.html#method-downloadFile}{\code{resourcer::ResourceClient$downloadFile()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="exec">}\href{../../resourcer/html/ResourceClient.html#method-exec}{\code{resourcer::ResourceClient$exec()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="getConnection">}\href{../../resourcer/html/ResourceClient.html#method-getConnection}{\code{resourcer::ResourceClient$getConnection()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="getResource">}\href{../../resourcer/html/ResourceClient.html#method-getResource}{\code{resourcer::ResourceClient$getResource()}}\out{</span>}
-}
-\out{</details>}
-}
+\if{html}{\out{<details><summary>Inherited methods</summary>
+<ul>
+  <li><span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="asTbl"><a href='../../resourcer/html/ResourceClient.html#method-ResourceClient-asTbl'><code>resourcer::ResourceClient$asTbl()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="close"><a href='../../resourcer/html/ResourceClient.html#method-ResourceClient-close'><code>resourcer::ResourceClient$close()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="downloadFile"><a href='../../resourcer/html/ResourceClient.html#method-ResourceClient-downloadFile'><code>resourcer::ResourceClient$downloadFile()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="exec"><a href='../../resourcer/html/ResourceClient.html#method-ResourceClient-exec'><code>resourcer::ResourceClient$exec()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="getConnection"><a href='../../resourcer/html/ResourceClient.html#method-ResourceClient-getConnection'><code>resourcer::ResourceClient$getConnection()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="resourcer" data-topic="ResourceClient" data-id="getResource"><a href='../../resourcer/html/ResourceClient.html#method-ResourceClient-getResource'><code>resourcer::ResourceClient$getResource()</code></a></span></li>
+</ul>
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
-\subsection{Method \code{new()}}{
-Creates a new FHIRResourceClient instance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FHIRResourceClient$new(resource)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-initialize}{}}}
+\subsection{\code{FHIRResourceClient$new()}}{
+  Creates a new FHIRResourceClient instance.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$new(resource)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{resource}}{A valid resource object.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A FHIRResourceClient object.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{resource}}{A valid resource object.}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A FHIRResourceClient object.
-}
-}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-asDataFrame"></a>}}
-\if{latex}{\out{\hypertarget{method-asDataFrame}{}}}
-\subsection{Method \code{asDataFrame()}}{
-Coerce the resource value extracted from the FHIR server to a data.frame.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FHIRResourceClient$asDataFrame(...)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-asDataFrame"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-asDataFrame}{}}}
+\subsection{\code{FHIRResourceClient$asDataFrame()}}{
+  Coerce the resource value extracted from the FHIR server to a data.frame.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$asDataFrame(...)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{...}}{Additional parameters to as.data.frame (not used yet).}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data.frame of the resources of the type defined by the resource format.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{...}}{Additional parameters to as.data.frame (not used yet).}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-A data.frame.
-}
-}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{FHIRResourceClient$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-getBundles"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-getBundles}{}}}
+\subsection{\code{FHIRResourceClient$getBundles()}}{
+  Get the FHIR bundles returned by the resource URL (fetched once).
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$getBundles()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A fhircrackr bundle list.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-getResourceTypes"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-getResourceTypes}{}}}
+\subsection{\code{FHIRResourceClient$getResourceTypes()}}{
+  Get the types of the resources present in the bundles.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$getResourceTypes()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A character vector of resource types, e.g. "Patient", "Observation".
+  }
 }
-\if{html}{\out{</div>}}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-getTable"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-getTable}{}}}
+\subsection{\code{FHIRResourceClient$getTable()}}{
+  Extract the table of a resource type from the bundles.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$getTable(type, cols = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{type}}{The resource type, e.g. "Observation".}
+      \item{\code{cols}}{Columns to extract, passed to fhircrackr::fhir_table_description().
+Default is all the elements. Tables with default columns are cached.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data.frame, empty if the resource type is not present.
+  }
 }
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-getTables"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-getTables}{}}}
+\subsection{\code{FHIRResourceClient$getTables()}}{
+  Extract the tables of several resource types from the bundles.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$getTables(types = self$getResourceTypes())}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{types}}{The resource types. Default is all the types present in the bundles.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A named list of data.frames.
+  }
 }
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-joinTables"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-joinTables}{}}}
+\subsection{\code{FHIRResourceClient$joinTables()}}{
+  Join the resources of a type with the resources they reference.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$joinTables(from, to, reference = "subject")}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{from}}{The type of the referencing resources, e.g. "Observation".}
+      \item{\code{to}}{The type of the referenced resources, e.g. "Patient".}
+      \item{\code{reference}}{The referencing element, e.g. "subject".}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data.frame with one row per `from` resource and the columns of
+  the referenced `to` resource, prefixed by its type (e.g. "Patient.gender"),
+  empty when the reference does not resolve. No column is added when no
+  `to` resource is present.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-FHIRResourceClient-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-FHIRResourceClient-clone}{}}}
+\subsection{\code{FHIRResourceClient$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{FHIRResourceClient$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
+}
+
 }

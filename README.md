@@ -21,3 +21,18 @@ res <- resourcer::newResource(url="fhir+https://hapi.fhir.org/baseR4/Observation
 ```
 
 Authentication: set `identity` and `secret` for a user name and password, or only `secret` for a bearer token.
+
+## Several resource types
+
+The FHIR bundles are fetched once from the resource URL. Several resource types can be obtained in one search with `_include` or `_revinclude`, and then extracted and joined with the client methods, e.g. from a server-side analysis package:
+
+```
+res <- resourcer::newResource(url="fhir+https://hapi.fhir.org/baseR4/Observation?code=http://loinc.org|736-9&_include=Observation:subject", format="Observation")
+client <- resourcer::newResourceClient(res)
+client$getResourceTypes()                    # "Observation" "Patient"
+client$getTable("Patient")                   # one table per resource type
+client$getTables()                           # named list of tables
+client$joinTables("Observation", "Patient")  # observations with Patient.* columns
+```
+
+No other query is issued: the resource URL defines the scope of the accessible data. Tables with a `subject` (or `patient`) reference get a `subject.id` (or `patient.id`) column, to be matched with the `id` of the referenced resource.
