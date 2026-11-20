@@ -152,9 +152,11 @@ Default is all the elements. XPath filters select a single repetition, e.g.
 `c(loinc = "code/coding[system/@value='http://loinc.org']/code")`.
 Tables with default columns are cached.}
       \item{\code{melt}}{Repeated elements to expand into rows, e.g. "component" or
-"code.coding" (column name prefixes). The other columns are repeated in each
-row; melting several elements gives all their combinations. Default is none:
-repetitions are pasted in a single cell, separated by `:::`.}
+"code.coding" (column name prefixes, "code/coding" is also accepted). The
+other columns are repeated in each row; melting several elements gives all
+their combinations. With `cols`, a melted column is expanded at all its
+levels, e.g. one row per coding for `c(code = "code/coding/code")`. Default
+is none: repetitions are pasted in a single cell, separated by `:::`.}
     }
     \if{html}{\out{</div>}}
   }

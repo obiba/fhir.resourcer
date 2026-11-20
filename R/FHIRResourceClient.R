@@ -78,15 +78,19 @@ FHIRResourceClient <- R6::R6Class(
     #'   `c(loinc = "code/coding[system/@value='http://loinc.org']/code")`.
     #'   Tables with default columns are cached.
     #' @param melt Repeated elements to expand into rows, e.g. "component" or
-    #'   "code.coding" (column name prefixes). The other columns are repeated in each
-    #'   row; melting several elements gives all their combinations. Default is none:
-    #'   repetitions are pasted in a single cell, separated by `:::`.
+    #'   "code.coding" (column name prefixes, "code/coding" is also accepted). The
+    #'   other columns are repeated in each row; melting several elements gives all
+    #'   their combinations. With `cols`, a melted column is expanded at all its
+    #'   levels, e.g. one row per coding for `c(code = "code/coding/code")`. Default
+    #'   is none: repetitions are pasted in a single cell, separated by `:::`.
     #' @return A data.frame, empty if the resource type is not present.
     getTable = function(type, cols = NULL, melt = NULL) {
+      melt <- sort(unique(chartr("/", ".", trimws(melt))))
+      melt <- melt[nchar(melt) > 0]
       if (!is.null(cols)) {
         return(fhir_crack_table(self$getBundles(), type, cols, melt))
       }
-      key <- paste(c(type, melt), collapse = "|")
+      key <- paste(c(type, melt), collapse = "\n")
       if (is.null(private$.tables[[key]])) {
         private$.tables[[key]] <- fhir_crack_table(self$getBundles(), type, melt = melt)
       }
@@ -156,18 +160,26 @@ fhir_fetch <- function(url, identity = NULL, secret = NULL) {
   }
 }
 
+# Index brackets and separator used while melting: control characters, which
+# cannot occur in the FHIR text, so that no value is altered or split.
+MELT_BRACKETS <- c("\u0002", "\u0003")
+MELT_SEP <- "\u001f"
+
 # Crack the resources of one type, melting the repeated elements and adding the
 # identifiers of the subject/patient references.
 fhir_crack_table <- function(bundles, type, cols = NULL, melt = NULL) {
-  brackets <- if (length(melt) > 0) c("[", "]") else character()
+  melting <- length(melt) > 0
+  brackets <- if (melting) MELT_BRACKETS else character()
+  sep <- if (melting) MELT_SEP else ":::"
   design <- if (is.null(cols)) {
-    fhir_table_description(type, brackets = brackets)
+    fhir_table_description(type, brackets = brackets, sep = sep)
   } else {
-    fhir_table_description(type, cols = cols, brackets = brackets)
+    fhir_table_description(type, cols = cols, brackets = brackets, sep = sep)
   }
   df <- suppressWarnings(fhir_crack(bundles = bundles, design = design, verbose = 0))
-  if (length(melt) > 0 && nrow(df) > 0) {
-    df <- fhir_rm_indices(fhir_melt_elements(df, melt, brackets), brackets = brackets)
+  if (melting && nrow(df) > 0) {
+    df <- fhir_rm_indices(fhir_melt_elements(df, melt, all_levels = !is.null(cols)), brackets = brackets)
+    df[] <- lapply(df, function(x) if (is.character(x)) gsub(MELT_SEP, ":::", x, fixed = TRUE) else x)
   }
   for (ref in c("subject", "patient")) {
     refCol <- paste0(ref, ".reference")
@@ -187,17 +199,34 @@ fhir_reference_key <- function(reference) {
 
 # Melt the repeated elements, one level at a time: fhir_melt() splits the outer
 # level of the indices, so "code.coding" is melted on "code" then on "code.coding".
-# Elements absent from the table are ignored.
-fhir_melt_elements <- function(df, melt, brackets) {
+# With `all_levels` (user defined columns, whose names do not follow the element
+# path), the matched columns are melted until a single index level is left.
+# Elements absent from the table are ignored with a warning.
+fhir_melt_elements <- function(df, melt, all_levels = FALSE) {
+  matching <- function(prefix) names(df)[names(df) == prefix | startsWith(names(df), paste0(prefix, "."))]
+  melt1 <- function(df, cols) {
+    df <- fhir_melt(df, columns = cols, brackets = MELT_BRACKETS, sep = MELT_SEP, all_columns = TRUE)
+    df$resource_identifier <- NULL
+    df
+  }
+  nested <- paste0(MELT_BRACKETS[1], "[0-9]+\\.")
   melted <- character()
   for (element in melt) {
+    if (length(matching(element)) == 0) {
+      warning("No '", element, "' element to expand", call. = FALSE)
+      next
+    }
+    if (all_levels) {
+      cols <- matching(element)
+      df <- melt1(df, cols)
+      while (any(grepl(nested, unlist(df[cols])))) df <- melt1(df, cols)
+      next
+    }
     parts <- strsplit(element, ".", fixed = TRUE)[[1]]
     for (i in seq_along(parts)) {
       prefix <- paste(parts[1:i], collapse = ".")
-      cols <- names(df)[names(df) == prefix | startsWith(names(df), paste0(prefix, "."))]
-      if (!(prefix %in% melted) && length(cols) > 0) {
-        df <- fhir_melt(df, columns = cols, brackets = brackets, sep = ":::", all_columns = TRUE)
-        df$resource_identifier <- NULL
+      if (!(prefix %in% melted)) {
+        df <- melt1(df, matching(prefix))
         melted <- c(melted, prefix)
       }
     }

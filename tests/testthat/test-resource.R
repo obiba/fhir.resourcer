@@ -159,12 +159,38 @@ test_that("Repeated elements are melted into rows", {
   expect_equal(df$id, c("o1", "o1", "o2"))
   expect_equal(df$code.coding.system, c("http://loinc.org", "urn:local", "http://loinc.org"))
 
-  df <- client$getTable("Observation", melt = c("component", "code.coding", "nothing"))
+  df <- client$getTable("Observation", melt = c("component", "code.coding"))
   expect_equal(df$id, c("o1", "o1", "o2", "o2"))
   expect_equal(df$code.coding.code, c("718-7", "HB", "85354-9", "85354-9"))
   expect_equal(df$component.valueQuantity.value, c(NA, NA, "120", "80"))
 
   expect_equal(nrow(client$getTable("Encounter", melt = "component")), 0)
+})
+
+test_that("Melting does not alter the values", {
+  df <- repeated_client()$getTable("Observation", melt = "component")
+  expect_equal(df$note.text, c("dose [1.5] mg", NA, NA))
+  expect_equal(df$component.code.text, c(NA, "a:::b", NA))
+})
+
+test_that("Unknown elements to melt are reported, XPath style is accepted", {
+  client <- repeated_client()
+  expect_warning(df <- client$getTable("Observation", melt = c("code.coding", "nothing")), "'nothing'")
+  expect_equal(df$id, c("o1", "o1", "o2"))
+  expect_equal(client$getTable("Observation", melt = "code/coding"), df)
+})
+
+test_that("Equivalent melt requests share the cached table", {
+  client <- repeated_client()
+  client$getTable("Observation", melt = c("component", "code.coding"))
+  client$getTable("Observation", melt = c(" code.coding", "component", "component"))
+  expect_length(client$.__enclos_env__$private$.tables, 1)
+})
+
+test_that("Columns are melted at all levels", {
+  df <- repeated_client()$getTable("Observation", cols = c(id = "id", code = "code/coding/code"), melt = "code")
+  expect_equal(df$id, c("o1", "o1", "o2"))
+  expect_equal(df$code, c("718-7", "HB", "85354-9"))
 })
 
 test_that("Format melts repeated elements in asDataFrame", {
