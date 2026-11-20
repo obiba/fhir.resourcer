@@ -204,6 +204,13 @@ test_that("A single coding is selected with an XPath filter", {
   expect_equal(df$loinc, c("718-7", "85354-9"))
 })
 
+test_that("A URL not returning a Bundle gives an explicit error", {
+  local_mocked_bindings(fhir_search = function(...) stop("This xml doesn't seem to represent a bundle, its name is not 'Bundle'."))
+  expect_error(fhir_fetch("https://hapi.fhir.org/baseR4"), "must be a FHIR search")
+  local_mocked_bindings(fhir_search = function(...) stop("timeout"))
+  expect_error(fhir_fetch("https://hapi.fhir.org/baseR4/Patient"), "timeout")
+})
+
 test_that("Columns are converted to their FHIR type when all the values have its form", {
   expect_equal(fhir_column_type("meta.lastUpdated"), "instant")
   expect_equal(fhir_column_type("component.valueQuantity.value"), "decimal")
