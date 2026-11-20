@@ -161,7 +161,12 @@ is none: repetitions are pasted in a single cell, separated by `:::`.}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A data.frame, empty if the resource type is not present.
+    A data.frame, empty if the resource type is not present. Common
+  elements are converted from text to their FHIR type (logical, integer,
+  numeric, Date, POSIXct in UTC), only when all the values of the column have
+  the FHIR form: a column with a partial date ("2011") or multiple values
+  (`:::`) stays character, so the class may vary with the data. Decimals lose
+  their trailing zeros ("5.00" gives 5).
   }
 }
 
