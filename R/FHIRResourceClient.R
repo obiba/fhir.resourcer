@@ -151,13 +151,22 @@ fhir_parse_format <- function(format) {
 # a secret without a user name is a bearer token.
 fhir_fetch <- function(url, identity = NULL, secret = NULL) {
   has <- function(x) !is.null(x) && nchar(x) > 0
-  if (has(identity)) {
-    fhir_search(url, username = identity, password = secret, verbose = 0)
-  } else if (has(secret)) {
-    fhir_search(url, token = secret, verbose = 0)
-  } else {
-    fhir_search(url, verbose = 0)
-  }
+  tryCatch({
+    if (has(identity)) {
+      fhir_search(url, username = identity, password = secret, verbose = 0)
+    } else if (has(secret)) {
+      fhir_search(url, token = secret, verbose = 0)
+    } else {
+      fhir_search(url, verbose = 0)
+    }
+  }, error = function(e) {
+    # A server base URL answers with a CapabilityStatement, not a search Bundle
+    if (!grepl("Bundle", conditionMessage(e), fixed = TRUE)) stop(e)
+    stop("The resource URL did not return a FHIR Bundle: it must be a FHIR search, ",
+         "i.e. the server base URL followed by a resource type and an optional query ",
+         "(e.g. https://hapi.fhir.org/baseR4/Patient?family=Smith), not the base URL alone: ",
+         url, call. = FALSE)
+  })
 }
 
 # Index brackets and separator used while melting: control characters, which

@@ -203,3 +203,10 @@ test_that("A single coding is selected with an XPath filter", {
     cols = c(id = "id", loinc = "code/coding[system/@value='http://loinc.org']/code"))
   expect_equal(df$loinc, c("718-7", "85354-9"))
 })
+
+test_that("A URL not returning a Bundle gives an explicit error", {
+  local_mocked_bindings(fhir_search = function(...) stop("This xml doesn't seem to represent a bundle, its name is not 'Bundle'."))
+  expect_error(fhir_fetch("https://hapi.fhir.org/baseR4"), "must be a FHIR search")
+  local_mocked_bindings(fhir_search = function(...) stop("timeout"))
+  expect_error(fhir_fetch("https://hapi.fhir.org/baseR4/Patient"), "timeout")
+})
