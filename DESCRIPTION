@@ -11,7 +11,7 @@ Authors@R:
       person("OBiBa group",
              role="cph",
              email="info@obiba.org"))
-Description: This package accesses HL7 FHIR (Fast Healthcare Interoperability Resources) server resources.
+Description: Accesses 'HL7' 'FHIR' (Fast Healthcare Interoperability Resources) server resources.
 License: LGPL (>= 2.1)
 LazyData: true
 Depends:
@@ -22,10 +22,9 @@ Imports:
     stats,
     xml2
 Suggests:
-    testthat,
-    knitr
-BugReports: https://github.com/obiba/fhir.resourcer
-VignetteBuilder: knitr
+    testthat
+URL: https://github.com/obiba/fhir.resourcer
+BugReports: https://github.com/obiba/fhir.resourcer/issues
 Encoding: UTF-8
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.0
