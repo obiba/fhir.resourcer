@@ -1,7 +1,7 @@
 Package: fhir.resourcer
 Type: Package
 Title: FHIR Resource Resolver
-Version: 0.8.0
+Version: 0.9.0
 Authors@R:
     c(person(given = "Yannick",
              family = "Marcon",
@@ -11,13 +11,13 @@ Authors@R:
       person("OBiBa group",
              role="cph",
              email="info@obiba.org"))
-Description: This package accesses HLF7 FHIR (Fast Healthcare Interoperability Resources) server resources.
+Description: This package accesses HL7 FHIR (Fast Healthcare Interoperability Resources) server resources.
 License: LGPL (>= 2.1)
 LazyData: true
 Depends:
     R6,
     resourcer,
-    fhircrackr
+    fhircrackr (>= 1.0.0)
 Suggests:
     testthat,
     knitr
@@ -25,3 +25,4 @@ BugReports: https://github.com/obiba/fhir.resourcer
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Encoding: UTF-8
+Config/testthat/edition: 3

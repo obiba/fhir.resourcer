@@ -1,4 +1,4 @@
 library(testthat)
-library(resourcer)
+library(fhir.resourcer)
 
-test_check("resourcer")
+test_check("fhir.resourcer")

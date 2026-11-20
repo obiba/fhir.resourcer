@@ -8,7 +8,7 @@ var fhir_resourcer = {
       {
         "name": "fhir",
         "title": "FHIR",
-        "description": "FHIR Patient data.",
+        "description": "Data extracted from a FHIR server search, one row per resource.",
         "tags": ["database"],
         "parameters": {
           "$schema": "http://json-schema.org/schema#",
@@ -23,8 +23,8 @@ var fhir_resourcer = {
             {
               "key": "path",
               "type": "string",
-              "title": "Path",
-              "description": "XPath to the entities to be extracted from the FHIR bundles (see explanations about XPath in [fhircrackr](https://github.com/POLAR-fhiR/fhircrackr)). Optional, default value is '//Patient'."
+              "title": "Resource type",
+              "description": "Type of the FHIR resources to be extracted from the search results, e.g. 'Patient' or 'Observation' (see [fhircrackr](https://github.com/POLAR-fhiR/fhircrackr)). Optional, default value is 'Patient'."
             }
           ],
           "required": [
@@ -34,7 +34,7 @@ var fhir_resourcer = {
         "credentials": {
           "$schema": "http://json-schema.org/schema#",
           "type": "array",
-          "description": "Credentials are optional. If not provided, no authentication will be applied.",
+          "description": "Credentials are optional. Provide either a user name and password, or a bearer token. If not provided, no authentication will be applied.",
           "items": [
             {
               "key": "username",
@@ -48,6 +48,13 @@ var fhir_resourcer = {
               "title": "Password",
               "format": "password",
               "description": "The FHIR server user password, if it applies."
+            },
+            {
+              "key": "token",
+              "type": "string",
+              "title": "Token",
+              "format": "password",
+              "description": "The bearer token (e.g. OAuth2 access token) to access the FHIR server, if it applies. Ignored when a user name is provided."
             }
           ]
         }
@@ -63,9 +70,9 @@ var fhir_resourcer = {
         return {
             name: name,
             url: "fhir+" + params.url,
-            format: params.path ? params.path : "//Patient",
+            format: params.path ? params.path.replace(/^\/+/, "") : "Patient",
             identity: credentials.username,
-            secret: credentials.password
+            secret: credentials.username ? credentials.password : credentials.token
         };
     };
 
